@@ -4,34 +4,54 @@
     <meta charset="utf-8">
     <title>chatterbox</title>
     <link rel="stylesheet" href="styles/styles.css">
-
     <!-- dependencies -->
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css">
     <script src="bower_components/jquery/jquery.min.js"></script>
-    <script src="bower_components/underscore/underscore-min.js"></script>
-    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
-    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-
+    <script src="bower_components/underscore/underscore.js"></script>
+    <script src="bower_components/validator-js/validator.min.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <!-- your scripts -->
     <script src="env/config.js"></script>
     <script src="scripts/app.js"></script>
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
   </head>
   <body>
-    <div class="jumbotron">
-      <h1>chatterbox</h1>
-      <!-- Your HTML goes here! -->
+  <div class="row">
+    <div class="col-lg-6">
+      <div id="main">
+        <h1>chatterbox</h1>
+        <h3 id="roomName"></h3>
+        <h3>Encryption: <span id="encryption"></span></h3>
+        <div>
+          <label for="message">Enter a message</label>
+          <form id="send">
+            <input type="text" id="message" class="form-control" placeholder="Your message here...">
+            <button class="btn btn-default submit" type="submit">Send</button>
+          </form>
+        </div>
+        <ul id="chats"></ul>
+      </div>
     </div>
-    <div class="input">
-      <form action="javascript:submit();">
-      <label>Rooms</label>
-      <select multiple class="roomList">
-      </select>
-      <input type="text" placeholder="username" class="userBox">
-      <input type="text" placeholder="Add a room?" class="roomBox">
-      <textarea placeholder="Write your message here!" class="messageBox"></textarea>
-      <input type="submit" class="submit">
+    <div class="col-lg-3">
+    <h3 align='left'>Other Rooms</h3>
+    <div>
+      <label for="roomBox">Enter a room name to add</label>
+      <input type="text" id="roomBox" class="form-control" placeholder="Room name...">
+      <button id="roomButton" class="btn btn-default" type="submit">Send</button>
+    </div>
+    <div id="roomList">
+      <ul id="roomSelect"></ul>
+    </div>
+    <div class="col-lg-3">
+    </div>
+    <div>
+      <form id="encForm">
+      <label for="encBox">Enter a passphrase to enable encryption:</label>
+      <input type="text" id="encBox" class="form-control" placeholder="Passphrase">
+      <button id="encButton" class="btn btn-default" type="submit">Send</button>
       </form>
     </div>
-    <div class="messages"></div>
+  </div>
+
   </body>
 </html>

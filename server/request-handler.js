@@ -53,6 +53,7 @@ var serveGet = function (request, response, data){
   }
   var headers = defaultCorsHeaders;
   response.writeHead(statusCode,headers);
+  console.log(reply);
   response.end(JSON.stringify(reply));
 };
 

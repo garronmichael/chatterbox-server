@@ -1,22 +1,19 @@
 body {
     background: #eee;
-    text-align: center;
     padding: 0 25px;
-    font-family: Helvetica Nueue, Helvetica, sans-serif;
-    font-weight: 200;
+    font-family: arial, sans-serif;
 }
 
 #main {
-    width: 500px;
     margin: auto;
     text-align: left;
     background: white;
-    padding: 50px 60px;
+    padding: 10px;
     border: solid #ddd;
     border-width: 0 1px 1px 1px;
 }
 
-#main h1 {
+/*#main h1 {
     margin-top: 0;
     font-size: 35px;
     margin-bottom: 5px;
@@ -25,10 +22,15 @@ body {
 
 #main h1 span {
     font-style:italic;
-}
+}*/
 
 #main ul {
     padding-left: 20px;
+}
+
+#main li {
+    list-style: none;
+    margin-bottom: 10px;
 }
 
 #main .error {
@@ -84,49 +86,27 @@ form input[type=text] {
     padding: 10px;
 }
 
-.user {
-    position: relative;
-    float: left;
-    text-align:left;
-    padding: 10px;
-    font-weight: bold;
-    border: 1px solid black;
+#input-msg {
+    margin-bottom: 25px;
 }
 
-.user:hover {
-    text-decoration: underline;
-    cursor: pointer;
+#writeMessageBox {
+    display: inline;
+    width: 50%;
 }
 
-.text {
-    position: relative;
-    text-align:left;
-}
-
-.userBox .roomBox {
-    display: block;
-    margin: 10px 0 10px 0;
-}
-
-.messageBox {
-    display: block;
-    height: 300px;
-    width: 90%;
-    margin: 0 0 10px 0;
-
+#sendMessageButton {
+    display: inline;
 }
 
 .friend {
-    font-weight: 800;
-    color: blue;
+    font-weight: bold;
 }
 
-select {
-    display: block;
-    width: 300px;
+.enc-off {
+    color: red;
 }
 
-form {
-    border: 1px solid black;
+.enc-on{
+    color: green;
 }
-

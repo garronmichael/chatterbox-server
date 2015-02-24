@@ -1,88 +1,79 @@
 // YOUR CODE HERE:
 
-var parseURL = 'https://api.parse.com/1/classes/chatterbox'
-var nodeURL = 'http://127.0.0.1:3000/classes/chatterbox/'
+//get message function:
+//get message from Parse
+//escape message content
+//display and append to body
 
-var getMessages = function() {
+
+var app = {
+  server: 'http://127.0.0.1:3000/1/classes/chatterbox'
+};
+
+app.fetch = function(number){
+    var options = {order:'-createdAt',limit:number,
+    where: {roomname: app.settings.roomName}};
+    $.ajax({
+      // always use this url
+      url: app.server,
+      type: 'GET',
+      // data: JSON.stringify(message),
+      contentType: 'application/json',
+      // data: options,
+      success: function (data) {
+        app.addMessage(JSON.parse(data).results);
+        // console.log(data);
+      },
+      error: function (data) {
+        // see: https://developer.mozilla.org/en-US/docs/Web/API/console.error
+        console.error('chatterbox: Failed to receive message,trying again...');
+        // setTimeout(app.fetch,2000);
+      }
+    });
+  };
+
+app.addMessage = function(messages){
+  // console.log(messages);
+  var $stream = $('#chats');
+
+  _.each(messages,function(value){
+    if (value.objectId !== app.settings.lastMessageReceived) {
+      console.log(value.encrypted);
+      if (value.crypto === true){
+        value.text = app.decrypt(value.text);
+      }
+      if (!value.username) value.username = "Anaughtymouse";
+      var $message = $('<li><a href="#" class="username">' +
+        validator.escape(value.username) +
+        '</a>: "' +validator.escape(value.text)+'"</li>');
+      if (app.settings.friends.indexOf(value.username) > -1) {
+        $message.addClass('friend');
+      }
+      $stream.prepend($message);
+      app.settings.lastMessageReceived = value.objectId;
+      //let's keep the chat tidy
+      if ($stream.children().length > 20){
+        $stream.last().remove();
+      }
+    }
+  });
+
+  $('.username').on('click', function() {
+    app.addFriend($(this).text());
+  });
+  timerID = setTimeout(function(){app.fetch(1)},10000);
+};
+
+app.send = function(message){
+  // var data = {
+  //   username: this.settings.username,
+  //   text: message,
+  //   roomname: this.settings.roomName
+  // };
+  console.log(message);
   $.ajax({
     // always use this url
-    url: nodeURL,
-    type: 'GET',
-    contentType: 'application/json',
-    data: {
-      limit: 50,
-      order: '-createdAt'
-    },
-    success: success,
-    error: function (data) {
-      // see: https://developer.mozilla.org/en-US/docs/Web/API/console.error
-      console.error('chatterbox: Failed to send message');
-    }
-  });
-};
-
-var success = function(data) {
-  console.log(data);
-  var $messages = $('.messages');
-  $('.message').remove();
-  for(var i = data.results.length - 1; i > -1; i--) {
-    var room = encodeURI(data.results[i].roomname);
-    var $message = $('.message:last-child');
-    var text = encodeURI(data.results[i].text);
-    text = text.replace(/\%20/g, ' ');
-    var user = encodeURI(data.results[i].username);
-    user = user.replace(/\%20/g, ' ');
-    $messages.append('<div class="message well ' + room + '"></div>');
-    if (friends.indexOf(user) !== -1) {
-      $message.addClass('friend');
-    }
-    $message.append('<div class="user">'+user+': </div>');
-    $message.append('<div class="text">'+text+'</div>');
-  }
-  $('.user').click(function(event) {
-    var friend = $(event.target).text().slice(0,-2);
-    friends.push(friend);
-    friends = _.uniq(friends);
-  });
-  populateRooms(data.results);
-  filterByRoom();
-};
-
-var populateRooms = function(results) {
-
-  var selectedRoom = $('option:checked').val();
-  $('option').remove();
-  var allRooms = _.pluck(results, 'roomname');
-  allRooms.sort();
-  allRooms = _.uniq(allRooms);
-  for(var i = 0; i < allRooms.length; i++) {
-   var room = encodeURI(allRooms[i]);
-   room = room.replace(/\%20/g, ' ');
-   $('select').append('<option value=' + room + '>' + room + '</option>');
-  }
-  $('option[value="' + selectedRoom + '"]').prop('selected', true);
-};
-
-var submit = function() {
-  var username = $('.userBox').val();
-  var text = $('.messageBox').val();
-  $('.messageBox').val('');
-  var room = $('.roomBox').val() || $('select').val();
-  $('.roomBox').val('');
-  if (room === null) {
-    room = '';
-  }
-  var message = {
-    'username': username,
-    'text': text,
-    'roomname': 'serverroom'
-  };
-  submitMessage(message);
-};
-
-var submitMessage = function(message) {
-  $.ajax({
-    url: nodeURL,
+    url: app.server,
     type: 'POST',
     data: JSON.stringify(message),
     contentType: 'application/json',
@@ -90,27 +81,155 @@ var submitMessage = function(message) {
       console.log('chatterbox: Message sent');
     },
     error: function (data) {
+      // see: https://developer.mozilla.org/en-US/docs/Web/API/console.error
       console.error('chatterbox: Failed to send message');
     }
   });
 };
 
-var filterByRoom = function() {
-  var roomVal =  $('select').val();
-  $('.message').show();
-  if(roomVal) {
-    $('.message').not('.' + roomVal).hide();
+app.activateEncryption = function(input){
+  var $encBox = $('#encBox');
+  var input = input || $encBox.val();
+  app.settings.passphrase = input;
+  app.settings.encryption = true;
+  $encBox.val('');
+  $('#encryption').removeClass('enc-off').addClass('enc-on').text('on');
+};
+
+app.encrypt = function(message){
+  var encrypted = CryptoJS.AES.encrypt(message,app.settings.passphrase, { format: JSONFormatter });
+  // var encrypted = CryptoJS.AES.encrypt(message,app.settings.passphrase);
+  return encrypted.toString();
+};
+
+app.decrypt = function(message){
+  var decrypted = CryptoJS.AES.decrypt(message,app.settings.passphrase, { format: JSONFormatter });
+  console.log(decrypted);
+  return decrypted.toString(CryptoJS.enc.Utf8);
+};
+
+app.settings = {
+  friends: [],
+  roomName: 'lobby',
+  username: 'Anonymous',
+  lastMessageReceived: null,
+  timerID: null,
+  encryption: false,
+  rooms: ['lobby'],
+  passphrase: ''
+};
+
+app.clearMessages = function(){
+  $('#chats').empty();
+};
+
+app.handleSubmit = function(){
+  var $box = $('#message');
+  var input = $box.val();
+  if (app.settings.encryption){
+    input = app.encrypt(input);
   }
-}
+  app.send({
+    username: app.settings.username,
+    text: input,
+    roomname: app.settings.roomName,
+    crypto: app.settings.encryption
+  });
+  $('#message').val('');
+};
 
-var friends = [];
+app.init = function(){
+
+  var $send = $('#send');
+  $send.on('submit',function(event){
+    event.preventDefault();
+    app.handleSubmit();
+  });
+
+  $('#roomButton').on('click',function(){
+    var $roomBox = $('#roomBox');
+    var input = $roomBox.val();
+    clearTimeout(timerID);
+    input = validator.escape(input);
+    app.addRoom(input);
+    app.changeRoom(input);
+    app.clearMessages();
+    app.fetch(10);
+  });
+
+  $('#encForm').on('submit',function(e){
+    e.preventDefault();
+    app.activateEncryption();
+  });
+
+  var bar = window.location.search;
+  app.settings.username = bar.slice(bar.indexOf("=")+1);
+  $('#roomName').text('Current room: ' +app.settings.roomName);
+  $('#encryption').text('off').addClass('enc-off');
+  // console.log(this)
+
+  var initPhrase = prompt('Enter your passphrase to access encrypted messages.') || '';
+  if (initPhrase !== '') app.activateEncryption(initPhrase);
+  app.fetch(10);
+};
+
+app.addRoom = function(name){
+  app.settings.rooms.push(name);
+  var $room = $('<li>' +validator.escape(name) + '</li>');
+  $('#roomSelect').append($room);
+};
+
+app.addFriend = function(name){
+  app.settings.friends.push(name);
+};
+
+app.changeRoom = function(name){
+  app.settings.roomName = name;
+  $('#roomName').text('Curent room: ' + app.settings.roomName);
+};
+
+$(document).ready(app.init);
+
+//example JSON formatter from CryptoJS project
+var JSONFormatter = {
+        stringify: function (cipherParams) {
+            // create json object with ciphertext
+            var jsonObj = {
+                ct: cipherParams.ciphertext.toString(CryptoJS.enc.Base64)
+            };
+
+            // optionally add iv and salt
+            if (cipherParams.iv) {
+                jsonObj.iv = cipherParams.iv.toString();
+            }
+            if (cipherParams.salt) {
+                jsonObj.s = cipherParams.salt.toString();
+            }
+
+            // stringify json object
+            return JSON.stringify(jsonObj);
+        },
+
+        parse: function (jsonStr) {
+            // parse json string
+            var jsonObj = JSON.parse(jsonStr);
+
+            // extract ciphertext from json object, and create cipher params object
+            var cipherParams = CryptoJS.lib.CipherParams.create({
+                ciphertext: CryptoJS.enc.Base64.parse(jsonObj.ct)
+            });
+
+            // optionally extract iv and salt
+            if (jsonObj.iv) {
+                cipherParams.iv = CryptoJS.enc.Hex.parse(jsonObj.iv)
+            }
+            if (jsonObj.s) {
+                cipherParams.salt = CryptoJS.enc.Hex.parse(jsonObj.s)
+            }
+
+            return cipherParams;
+        }
+    };
 
 
-
-
-
-
-getMessages();
-// setInterval(getMessages, 2000);
-
-
+//function: escape message content
