@@ -69,6 +69,7 @@ var requestHandler = function(request, response) {
 };
 
 // var _urls = {};
+var storage = [];
 
 var assembleData = function (request, response){
   var data = '';
@@ -90,8 +91,10 @@ var serveGet = function (request, response, data){
   var statusCode;
   var reply = {results: []};
   if(request.url === '/classes/messages') {
-    console.log(true);
     statusCode = 200;
+    for(var i = 0; i < storage.length; i++) {
+      reply.results.push(storage[i]);
+    }
   } else {
     statusCode = 404;
   }
@@ -121,6 +124,9 @@ var servePost = function (request, response, data){
   // } else{z
   //   _urls[url] = [data];
   // }
+
+  var parsedData = JSON.parse(data);
+  storage.push(parsedData);
   var statusCode = 201;
   var headers = defaultCorsHeaders;
   response.writeHead(statusCode,headers);
