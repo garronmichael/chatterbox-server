@@ -67,7 +67,7 @@ var serveGet = function (request, response, data){
   }
   var headers = defaultCorsHeaders;
   response.writeHead(statusCode,headers);
-  console.log('Sending GET response: \n' + JSON.stringify(reply));
+  // console.log('Sending GET response: \n' + JSON.stringify(reply));
   response.end(JSON.stringify(reply));
 };
 
@@ -75,7 +75,9 @@ var servePost = function (request, response, data){
 
   var parsedData = JSON.parse(data);
   var key = request.url;
-  item = localStorage.getItem(key) || [];
+  item = localStorage.getItem(key);
+  if (item === null) item = [];
+  else item = JSON.parse(item);
   parsedData.objectId = prevID+1;
   prevID++;
   item.push(parsedData);
