@@ -21,7 +21,18 @@ var requestHandler = function(request, response) {
 };
 
 // var _urls = {};
-var storage = {'/classes/room1':[], '/classes/messages':[]};
+if (typeof localStorage === "undefined" || localStorage === null) {
+  var LocalStorage = require('node-localstorage').LocalStorage;
+  localStorage = new LocalStorage('./storage');
+}
+
+// localStorage.setItem('myFirstKey', 'myFirstValue');
+// console.log(localStorage.getItem('myFirstKey'));
+
+// var storage = {'/classes/room1':[], '/classes/messages':[]};
+localStorage.setItem('/classes/room1', []);
+localStorage.setItem('classes/messages', []);
+var prevID = -1;
 
 var assembleData = function (request, response){
   var data = '';
@@ -43,17 +54,20 @@ var serveGet = function (request, response, data){
   var statusCode;
   var reply = {results: []};
   var key = request.url;
-  if(!storage.hasOwnProperty(key)) {
+  // !storage.hasOwnProperty(key)
+  var item = localStorage.getItem(key);
+  if(item === null) {
     statusCode = 404;
   } else {
+    item = JSON.parse(item);
     statusCode = 200;
-    for(var i = 0; i < storage[key].length; i++) {
-      reply.results.push(storage[key][i]);
+    for(var i = 0; i < item.length; i++) {
+      reply.results.push(item[i]);
     }
   }
   var headers = defaultCorsHeaders;
   response.writeHead(statusCode,headers);
-  console.log(reply);
+  console.log('Sending GET response: \n' + JSON.stringify(reply));
   response.end(JSON.stringify(reply));
 };
 
@@ -61,11 +75,16 @@ var servePost = function (request, response, data){
 
   var parsedData = JSON.parse(data);
   var key = request.url;
-  storage[key] = storage[key] || [];
-  storage[key].push(parsedData);
+  item = localStorage.getItem(key) || [];
+  parsedData.objectId = prevID+1;
+  prevID++;
+  item.push(parsedData);
+  localStorage.setItem(key, JSON.stringify(item));
   var statusCode = 201;
   var headers = defaultCorsHeaders;
   response.writeHead(statusCode,headers);
+  console.log('POST created: \n' + data + '\n at URL' + key
+    + 'with ID: ' + parsedData.objectId);
   response.end();
 };
 

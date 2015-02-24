@@ -27,7 +27,7 @@ app.fetch = function(number){
       error: function (data) {
         // see: https://developer.mozilla.org/en-US/docs/Web/API/console.error
         console.error('chatterbox: Failed to receive message,trying again...');
-        // setTimeout(app.fetch,2000);
+        setTimeout(app.fetch,2000);
       }
     });
   };
@@ -35,10 +35,9 @@ app.fetch = function(number){
 app.addMessage = function(messages){
   // console.log(messages);
   var $stream = $('#chats');
-
   _.each(messages,function(value){
-    if (value.objectId !== app.settings.lastMessageReceived) {
-      console.log(value.encrypted);
+    if (app.settings.alreadyReceived.indexOf(value.objectId) === -1) {
+      // console.log(value.encrypted);
       if (value.crypto === true){
         value.text = app.decrypt(value.text);
       }
@@ -50,7 +49,7 @@ app.addMessage = function(messages){
         $message.addClass('friend');
       }
       $stream.prepend($message);
-      app.settings.lastMessageReceived = value.objectId;
+      app.settings.alreadyReceived.push(value.objectId);
       //let's keep the chat tidy
       if ($stream.children().length > 20){
         $stream.last().remove();
@@ -61,7 +60,7 @@ app.addMessage = function(messages){
   $('.username').on('click', function() {
     app.addFriend($(this).text());
   });
-  timerID = setTimeout(function(){app.fetch(1)},10000);
+  timerID = setTimeout(function(){app.fetch(1)},2000);
 };
 
 app.send = function(message){
@@ -113,6 +112,7 @@ app.settings = {
   roomName: 'lobby',
   username: 'Anonymous',
   lastMessageReceived: null,
+  alreadyReceived: [],
   timerID: null,
   encryption: false,
   rooms: ['lobby'],
