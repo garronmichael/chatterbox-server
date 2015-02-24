@@ -30,7 +30,7 @@ var requestHandler = function(request, response) {
   console.log("Serving request type " + request.method + " for url " + request.url);
 
   if (request.method === 'OPTIONS') serveOptions(request,response);
-  else var data = assembleData(request);
+  else var data = assembleData(request, response);
   // request.on('end', function(){
   //   if (request.method === 'GET'){
   //     serveGet(request,response,data);
@@ -68,7 +68,7 @@ var requestHandler = function(request, response) {
   // response.end("Hello, World!");
 };
 
-var _urls = {};
+// var _urls = {};
 
 var assembleData = function (request, response){
   var data = '';
@@ -87,13 +87,44 @@ var assembleData = function (request, response){
 };
 
 var serveGet = function (request, response, data){
-  console.log("GET served!");
-  var url = request.url;
+  var statusCode;
+  var reply = {results: []};
+  if(request.url === '/classes/messages') {
+    console.log(true);
+    statusCode = 200;
+  } else {
+    statusCode = 404;
+  }
+  // var url = request.url;
+  // var retrieved;
+  // if(_urls.hasOwnProperty(url)) {
+  //   statusCode = 200;
+  //   retrieved = _urls.url;
+  //   retrieved = {'results': retrieved};
+  // } else {
+  //   statusCode = 404;
+  //   console.log('404');
+  //   retrieved = {'null': null};
+  // }
+  var headers = defaultCorsHeaders;
+  response.writeHead(statusCode,headers);
+  response.end(JSON.stringify(reply));
 };
 
 var servePost = function (request, response, data){
-  var url = request.url;
-  _urls[url] = data;
+  // var url = request.url;
+  // var retrieved;
+  // if(_urls.hasOwnProperty(url)) {
+  //   retrieved = _urls.url;
+  //   retrieved.push(data);
+  //   _urls.url = retrieved;
+  // } else{z
+  //   _urls[url] = [data];
+  // }
+  var statusCode = 201;
+  var headers = defaultCorsHeaders;
+  response.writeHead(statusCode,headers);
+  response.end();
 };
 
 var serveOptions = function (request, response){
