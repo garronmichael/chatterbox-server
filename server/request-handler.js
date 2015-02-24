@@ -29,30 +29,79 @@ var requestHandler = function(request, response) {
   // console.logs in your code.
   console.log("Serving request type " + request.method + " for url " + request.url);
 
-  // The outgoing status.
+  if (request.method === 'OPTIONS') serveOptions(request,response);
+  else var data = assembleData(request);
+  // request.on('end', function(){
+  //   if (request.method === 'GET'){
+  //     serveGet(request,response,data);
+  //   } else if (request.method === 'POST'){
+  //     servePost(request,response,data);
+  //   } else if (request.method === 'OPTIONS'){
+  //     serveOptions(request,response);
+  //   }
+  // })
+
+
+  // // The outgoing status.
+  // var statusCode = 200;
+
+  // // See the note below about CORS headers.
+  // var headers = defaultCorsHeaders;
+
+  // // Tell the client we are sending them plain text.
+  // //
+  // // You will need to change this if you are sending something
+  // // other than plain text, like JSON or HTML.
+  // headers['Content-Type'] = "text/plain";
+
+  // // .writeHead() writes to the request line and headers of the response,
+  // // which includes the status and all headers.
+  // response.writeHead(statusCode, headers);
+
+  // // Make sure to always call response.end() - Node may not send
+  // // anything back to the client until you do. The string you pass to
+  // // response.end() will be the body of the response - i.e. what shows
+  // // up in the browser.
+  // //
+  // // Calling .end "flushes" the response's internal buffer, forcing
+  // // node to actually send all the data over to the client.
+  // response.end("Hello, World!");
+};
+
+var _urls = {};
+
+var assembleData = function (request, response){
+  var data = '';
+  request.on('data', function(chunk){
+    data += chunk;
+  });
+
+  request.on('end', function(){
+    if (request.method === 'GET'){
+      serveGet(request,response,data);
+    } else if (request.method === 'POST'){
+      servePost(request,response,data);
+    }
+
+  });
+};
+
+var serveGet = function (request, response, data){
+  console.log("GET served!");
+  var url = request.url;
+};
+
+var servePost = function (request, response, data){
+  var url = request.url;
+  _urls[url] = data;
+};
+
+var serveOptions = function (request, response){
   var statusCode = 200;
-
-  // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
-
-  // Tell the client we are sending them plain text.
-  //
-  // You will need to change this if you are sending something
-  // other than plain text, like JSON or HTML.
   headers['Content-Type'] = "text/plain";
-
-  // .writeHead() writes to the request line and headers of the response,
-  // which includes the status and all headers.
   response.writeHead(statusCode, headers);
-
-  // Make sure to always call response.end() - Node may not send
-  // anything back to the client until you do. The string you pass to
-  // response.end() will be the body of the response - i.e. what shows
-  // up in the browser.
-  //
-  // Calling .end "flushes" the response's internal buffer, forcing
-  // node to actually send all the data over to the client.
-  response.end("Hello, World!");
+  response.end();
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -68,6 +117,8 @@ var defaultCorsHeaders = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
   "access-control-allow-headers": "content-type, accept",
-  "access-control-max-age": 10 // Seconds.
+  "access-control-max-age": 10, // Seconds.
 };
+
+module.exports = requestHandler;
 
