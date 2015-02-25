@@ -20,19 +20,18 @@ var requestHandler = function(request, response) {
 
 };
 
-// var _urls = {};
+var prevID;
+
 if (typeof localStorage === "undefined" || localStorage === null) {
   var LocalStorage = require('node-localstorage').LocalStorage;
   localStorage = new LocalStorage('./storage');
+  var prevID = -1;
+  localStorage.setItem('prevID',prevID);
 }
 
-// localStorage.setItem('myFirstKey', 'myFirstValue');
-// console.log(localStorage.getItem('myFirstKey'));
-
-// var storage = {'/classes/room1':[], '/classes/messages':[]};
 localStorage.setItem('/classes/room1', []);
 localStorage.setItem('classes/messages', []);
-var prevID = -1;
+prevID = localStorage.getItem('prevID');
 
 var assembleData = function (request, response){
   var data = '';
@@ -78,8 +77,8 @@ var servePost = function (request, response, data){
   item = localStorage.getItem(key);
   if (item === null) item = [];
   else item = JSON.parse(item);
-  parsedData.objectId = prevID+1;
-  prevID++;
+  parsedData.objectId = ++prevID;
+  localStorage.setItem('prevID',prevID);
   item.push(parsedData);
   localStorage.setItem(key, JSON.stringify(item));
   var statusCode = 201;
@@ -98,15 +97,6 @@ var serveOptions = function (request, response){
   response.end();
 };
 
-// These headers will allow Cross-Origin Resource Sharing (CORS).
-// This code allows this server to talk to websites that
-// are on different domains, for instance, your chat client.
-//
-// Your chat client is running from a url like file://your/chat/client/index.html,
-// which is considered a different domain.
-//
-// Another way to get around this restriction is to serve you chat
-// client from this domain by setting up static file serving.
 var defaultCorsHeaders = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",

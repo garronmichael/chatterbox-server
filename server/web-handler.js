@@ -1,6 +1,11 @@
 var fs = require('fs');
+var forbidden = [
+  '../'
+];
 
 var webHandler = function(request,response){
+  //TODO: implement guard against attackers, e.g. ".." in URL
+
   console.log('original url: ' + request.url);
   var url = request.url;
   var searchIndex = request.url.indexOf('?');
